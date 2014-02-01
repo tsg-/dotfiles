@@ -1,0 +1,2 @@
+prompt='%~# '
+export HISTSIZE=999999
