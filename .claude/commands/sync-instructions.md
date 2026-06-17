@@ -15,15 +15,15 @@ The canonical copies live at:
 
 ## Local backup
 
-Always sync to `~/dotfiles/` as a local backup (same relative paths).
+Always sync to `~/src/dotfiles/` as a local backup (same relative paths).
 
 ## Behavior
 
-When invoked with no arguments: sync all files to `~/dotfiles/` only.
+When invoked with no arguments: sync all files to `~/src/dotfiles/` only.
 
 When invoked with a target:
-- **Hostname only** (e.g. `bmg0`): ssh to host, create directories if needed, scp all files to the same `~/` relative paths. Also sync to `~/dotfiles/`.
-- **Host:path** (e.g. `bmg0:~/tsg`): ssh to host, create directories under the given path, scp all files relative to that path instead of `~`. Also sync to `~/dotfiles/`.
+- **Hostname only** (e.g. `bmg0`): ssh to host, create directories if needed, scp all files to the same `~/` relative paths. Also sync to `~/src/dotfiles/`.
+- **Host:path** (e.g. `bmg0:~/tsg`): ssh to host, create directories under the given path, scp all files relative to that path instead of `~`. Also sync to `~/src/dotfiles/`.
 
 ## Steps
 
@@ -32,12 +32,12 @@ When invoked with a target:
    - If `$ARGUMENTS` is empty → local sync only (verify files are in place).
    - If `$ARGUMENTS` contains `:` → parse as `host:path`. Remote base = path.
    - If `$ARGUMENTS` has no `:` → parse as `host`. Remote base = `~`.
-3. Sync to `~/dotfiles/`:
+3. Sync to `~/src/dotfiles/`:
    ```bash
-   cp ~/.claude/CLAUDE.md ~/dotfiles/.claude/CLAUDE.md
-   cp ~/.gemini/GEMINI.md ~/dotfiles/.gemini/GEMINI.md
-   cp ~/.github/copilot-instructions.md ~/dotfiles/.github/copilot-instructions.md
-   cp ~/.claude/commands/*.md ~/dotfiles/.claude/commands/
+   cp ~/.claude/CLAUDE.md ~/src/dotfiles/.claude/CLAUDE.md
+   cp ~/.gemini/GEMINI.md ~/src/dotfiles/.gemini/GEMINI.md
+   cp ~/.github/copilot-instructions.md ~/src/dotfiles/.github/copilot-instructions.md
+   cp ~/.claude/commands/*.md ~/src/dotfiles/.claude/commands/
    ```
 4. For remote targets, run:
    ```bash
