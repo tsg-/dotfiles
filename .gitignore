@@ -1,1 +1,5 @@
 .git
+.ssh/
+.aws/
+.zsh_history
+vault-*-exp
