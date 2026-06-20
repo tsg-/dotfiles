@@ -72,11 +72,35 @@ After all changes are applied:
 
 ```bash
 # Reply to the comment (for fix and won't-fix)
-gh api repos/{owner}/{repo}/pulls/{number}/comments/{id}/replies \
-  -f body="Fixed in <commit-sha>" \
+# NOTE: use -F (not -f) for in_reply_to so it sends as integer
+gh api repos/{owner}/{repo}/pulls/{number}/comments \
+  -F body="Fixed in <commit-sha>." \
+  -F in_reply_to=<comment_database_id> \
   --method POST
+```
 
-# Resolve the thread via GraphQL
+Then resolve each thread via GraphQL:
+
+```bash
+# 1. Get thread node IDs for unresolved threads
+gh api graphql -f query='
+  {
+    repository(owner: "{owner}", name: "{repo}") {
+      pullRequest(number: {number}) {
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            comments(first: 1) { nodes { databaseId } }
+          }
+        }
+      }
+    }
+  }
+' --jq '.data.repository.pullRequest.reviewThreads.nodes[]
+        | select(.isResolved == false) | .id'
+
+# 2. Resolve each thread
 gh api graphql -f query='
   mutation {
     resolveReviewThread(input: {threadId: "<thread_node_id>"}) {
@@ -86,22 +110,8 @@ gh api graphql -f query='
 '
 ```
 
-To get the thread node_id, use:
-```bash
-gh api graphql -f query='
-  query {
-    repository(owner: "{owner}", name: "{repo}") {
-      pullRequest(number: {number}) {
-        reviewThreads(first: 100) {
-          nodes { id isResolved comments(first: 1) { nodes { databaseId } } }
-        }
-      }
-    }
-  }
-'
-```
-
-Match comment databaseId to the thread node_id for resolution.
+Match comment databaseId from the fetch step to identify which
+thread corresponds to which comment.
 
 ### 5. Commit and push
 
