@@ -65,7 +65,8 @@ gh api repos/{owner}/{repo}/issues/{number}/comments \
 
 ## Local LLM-based agents
 
-All local agents follow the same workflow:
+All local agents follow a fix-in-place workflow (no round-trip
+through PR comments):
 
 1. Fetch the PR diff:
    ```bash
@@ -76,26 +77,33 @@ All local agents follow the same workflow:
    correctness bugs, simplification, and style issues. Each
    finding must include file path, line number, and explanation.
 
-3. Post findings as inline review comments:
+3. Triage findings (same format as /fix-pr):
+   - Present a summary table to the user with fix/dismiss/won't-fix
+   - Wait for confirmation
+
+4. Apply fixes locally:
+   - Checkout the PR branch
+   - Make minimal changes for each "fix" item
+   - For "won't-fix" items, prepare a brief reply
+
+5. Commit and push:
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{number}/reviews \
-     --method POST \
-     -f event="COMMENT" \
-     -f body="<agent> code review" \
-     --input <json-body-with-comments>
+   git add <changed-files>
+   git commit -s -m "fix: address <agent> review feedback
+
+   <one-line summary per fix>
+
+   Signed-off-by: ..."
+   git push
    ```
 
-   The JSON body format for multi-comment reviews:
-   ```json
-   {
-     "event": "COMMENT",
-     "body": "Review by <agent>",
-     "comments": [
-       {"path": "file.cpp", "line": 42, "body": "finding..."},
-       ...
-     ]
-   }
-   ```
+6. Resolve threads on GitHub:
+   - Reply to fix items with "Fixed in <sha>."
+   - Reply to won't-fix items with rationale
+   - Resolve all threads via GraphQL
+
+Do NOT post findings as PR comments first — fix them directly.
+Only post comments for won't-fix items that need an explanation.
 
 ### claude
 
@@ -119,12 +127,12 @@ copilot -p "Review this diff for correctness bugs, security issues, \
   and style problems. Output ONLY a JSON array where each element \
   has keys: path, line, body. No markdown fences, no explanation.
 
-$DIFF" --print-only
+$DIFF" -s
 ```
 
 Flags:
 - `-p`: non-interactive single-shot prompt
-- `--print-only`: raw output only (no UI chrome, no session stats)
+- `-s`: silent mode (raw output only, no UI chrome)
 
 Parse the JSON response and post as inline PR comments.
 
